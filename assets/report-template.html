@@ -1,0 +1,445 @@
+<!doctype html>
+<!--
+  试卷复盘报告模板（星空水彩风）
+  用法：复制本文件，把 {{…}} 占位符和示例内容换成真实内容。
+  - 没用到的整段删掉（例如没有历史记录时删掉"和以前比"，知识点星图改用"本次涉及"写法）。
+  - 错题卡、重做题、答案、知识点按需复制 .card / .q / .answer / .kp 块。
+  - 保留 <style>、开头的 SVG 图标库和结尾的脚本，只替换内容：
+    手机上提示和答案默认折叠；打印时脚本会展开全部折叠内容，并自动换成白底。
+  - 得分条用 style="--p:87%" 设置比例；得分率低于 70% 的加 class="low"。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>试卷复盘｜{{科目}} · {{考试名}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #111a42;
+    --sky: #1b2c6e;
+    --sky-2: #2a4799;
+    --glow: #4b6fc2;
+    --star: #f2c75c;
+    --paper: #fbf4e1;
+    --paper-2: #f4e7c8;
+    --line: #dfcb9c;
+    --ink: #2a2733;
+    --ink-soft: #625b6c;
+    --rose: #c4433b;
+    --leaf: #4f7d48;
+    --cream: #f6eed6;
+    --cream-soft: #c9d0ea;
+    --display: "Noto Serif SC", "Songti SC", "STSong", serif;
+    --body: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--night); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font: 16px/1.75 var(--body);
+    background-color: var(--sky);
+    background-image:
+      radial-gradient(1.3px 1.3px at 24px 36px, #fffbe9 55%, transparent 60%),
+      radial-gradient(1px 1px at 130px 90px, #ffffffcc 55%, transparent 60%),
+      radial-gradient(1.8px 1.8px at 200px 170px, #f2c75ccc 55%, transparent 60%),
+      radial-gradient(1px 1px at 70px 210px, #ffffffaa 55%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 260px 40px, #fffbe9bb 55%, transparent 60%),
+      radial-gradient(70% 40% at 85% 6%, #4b6fc266, transparent 70%),
+      radial-gradient(60% 35% at 5% 45%, #2a479999, transparent 70%),
+      radial-gradient(80% 30% at 70% 85%, #3d5fb066, transparent 70%),
+      linear-gradient(180deg, var(--night) 0%, var(--sky) 35%, var(--sky-2) 100%);
+    background-size: 290px 240px, 290px 240px, 330px 280px, 290px 240px, 310px 260px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .18;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.012 .02' numOctaves='4' seed='9'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  main { position: relative; max-width: 720px; margin: 0 auto; padding: 12px 16px 40px; }
+  .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  /* 开头：月亮和分数 */
+  .hero { text-align: center; color: var(--cream); padding: 8px 0 4px; }
+  .hero-art { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto -6px; }
+  .moon-score { font-family: var(--display); font-weight: 700; font-size: 52px; fill: #3b3243; }
+  .moon-full { font-family: var(--display); font-weight: 600; font-size: 15px; fill: #6d5e49; }
+  .eyebrow { margin: 0; font-size: 13px; letter-spacing: .08em; color: var(--cream-soft); }
+  .hero h1 { margin: 2px 0 2px; font: 700 32px/1.3 var(--display); color: var(--cream); letter-spacing: .12em; }
+  .hero .lede { margin: 0 auto; max-width: 30em; font-size: 15px; color: var(--cream); opacity: .92; }
+
+  /* 纸页卡片 */
+  .sheet {
+    position: relative;
+    margin: 22px 0;
+    padding: 20px 18px 18px;
+    border-radius: 20px 18px 22px 16px;
+    background:
+      radial-gradient(120% 70% at 50% 0%, #fffaee 0%, transparent 70%),
+      radial-gradient(90% 60% at 100% 100%, #f1e1bd 0%, transparent 70%),
+      var(--paper);
+    box-shadow: 0 10px 30px rgba(6, 12, 40, .38), inset 0 0 0 1px rgba(255, 255, 255, .35);
+  }
+  .sheet > h2 {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 12px; font: 700 20px/1.4 var(--display); color: var(--sky);
+  }
+  .sheet > h2 .ico { width: 22px; height: 22px; color: var(--star); flex: none; }
+  .sky-title { margin: 30px 4px 0; font: 700 22px/1.4 var(--display); color: var(--cream); display: flex; gap: 8px; align-items: center; }
+  .sky-title .ico { width: 22px; height: 22px; color: var(--star); }
+  .sky-note { margin: 2px 4px 0; font-size: 13px; color: var(--cream-soft); }
+  h3 { margin: 14px 0 6px; font-size: 16px; color: var(--ink); }
+  p, li { margin: 6px 0; }
+  ol, ul { padding-left: 22px; }
+  .note { color: var(--ink-soft); font-size: 13px; }
+  .ico { display: inline-block; vertical-align: -3px; }
+
+  /* 得分条 */
+  .bars { display: grid; gap: 10px; }
+  .bar { display: grid; grid-template-columns: 5.5em 1fr auto; align-items: center; gap: 10px; font-size: 14px; }
+  .bar-track { height: 12px; border-radius: 999px; background: #ead9b2; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; width: var(--p); border-radius: 999px; background: linear-gradient(90deg, #e9b54a, var(--star)); }
+  .bar.low .bar-fill { background: linear-gradient(90deg, #b8392f, #dd6a52); }
+  .bar-num { font-variant-numeric: tabular-nums; color: var(--ink); }
+  .bar-num small { color: var(--ink-soft); }
+
+  /* 最该拿回的分 */
+  .recover { display: flex; gap: 16px; align-items: center; }
+  .badge { position: relative; flex: none; width: 92px; height: 92px; display: grid; place-items: center; }
+  .badge svg { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--star); }
+  .badge b { position: relative; font: 700 28px/1 var(--display); color: #4a3a1c; margin-top: 8px; }
+  .badge span { position: absolute; bottom: 20px; font-size: 11px; color: #6b5420; }
+
+  /* 共同病因 */
+  .causes { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  .cause { display: grid; grid-template-columns: 40px 1fr; gap: 12px; }
+  .cause-num {
+    width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    font: 700 18px/1 var(--display); color: var(--paper);
+    background: radial-gradient(circle at 35% 30%, #4b6fc2, var(--sky));
+    box-shadow: 0 0 0 3px #f2c75c55;
+  }
+  .cause h3 { margin: 6px 0 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: #e9ddc0; color: #4b4252; }
+  .chip.lost { background: #f3d7cf; color: #8e2c25; }
+  .chip.gold { background: #f6e3a8; color: #6a4f12; }
+
+  /* 列表 */
+  .stars { list-style: none; padding-left: 0; }
+  .stars li { position: relative; padding-left: 24px; }
+  .stars li::before { content: "★"; position: absolute; left: 0; top: 0; color: #d9a83a; }
+  .todo { list-style: none; padding-left: 0; counter-reset: t; }
+  .todo li { position: relative; padding-left: 34px; counter-increment: t; }
+  .todo li::before {
+    content: counter(t); position: absolute; left: 0; top: 2px; width: 24px; height: 24px; border-radius: 6px;
+    border: 1.5px solid #c9a75b; display: grid; place-items: center; font-size: 13px; color: #8a6a22;
+  }
+
+  /* 知识点星图 */
+  .kp-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .kp { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: #fffaf0; }
+  .kp.weak { border-color: #d9867c; background: #fff4ef; }
+  .kp-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .kp-name { font-weight: 600; }
+  .kp-count { flex: none; font-size: 13px; color: #b5402f; letter-spacing: .1em; }
+  .kp-loc { margin: 4px 0; font-size: 14px; }
+  .kp-loc b { color: var(--sky); }
+  .kp-meta { margin: 2px 0 0; font-size: 12px; color: var(--ink-soft); }
+
+  /* 错题卡 */
+  .card { position: relative; border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 12px; margin: 14px 0; background: #fffaf0; break-inside: avoid; }
+  .card-head { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+  .qno {
+    flex: none; min-width: 44px; height: 44px; padding: 0 6px; border-radius: 22px; display: grid; place-items: center;
+    font: 700 16px/1 var(--display); color: #4a3a1c; background: radial-gradient(circle at 35% 30%, #fbe7a6, var(--star));
+  }
+  .card-title { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
+  .card-title b { color: var(--ink); font-size: 15px; }
+  .tag { display: inline-block; border-radius: 6px; padding: 0 7px; margin-right: 6px; font-size: 12px; background: var(--sky); color: var(--cream); }
+  details { margin: 8px 0; border-radius: 12px; background: #f3e8cc; padding: 8px 12px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--sky); list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "☆ "; color: #c9952e; }
+  details[open] > summary::before { content: "★ "; }
+
+  /* 重做单 */
+  .q { margin: 16px 0; padding-bottom: 12px; border-bottom: 1px dashed var(--line); break-inside: avoid; }
+  .q:last-of-type { border-bottom: none; }
+  .space { display: none; }
+  .check { list-style: none; padding-left: 0; }
+  .answer { margin: 14px 0; break-inside: avoid; }
+
+  footer { margin: 34px 0 10px; text-align: center; color: var(--cream-soft); font-size: 13px; }
+  footer svg { width: 56px; height: 56px; display: block; margin: 0 auto 6px; }
+
+  @media (max-width: 420px) {
+    .hero h1 { font-size: 30px; }
+    .sheet { padding: 18px 14px 14px; }
+    .bar { grid-template-columns: 4.8em 1fr auto; }
+  }
+
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    html, body { background: #fff !important; }
+    body { font-size: 12pt; }
+    body::before { display: none; }
+    main { max-width: none; padding: 0; }
+    .hero { color: var(--ink); }
+    .hero-art { max-width: 300px; }
+    .eyebrow, .hero .lede { color: var(--ink-soft); }
+    .hero h1 { color: var(--sky); }
+    .sky-title { color: var(--sky); }
+    .sky-note { color: var(--ink-soft); }
+    .sheet { box-shadow: none; background: #fff; border: 1px solid var(--line); }
+    .sheet.break { break-before: page; }
+    .no-print { display: none; }
+    details { background: none; padding: 0; }
+    .space { display: block; min-height: 70mm; }
+    .bar-fill, .cause-num, .qno, .tag, .chip, .badge svg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    footer { color: var(--ink-soft); }
+  }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-star" viewBox="0 0 20 20"><path fill="currentColor" d="M10 1.4l2.6 5.6 6.1.7-4.5 4.2 1.2 6L10 14.9l-5.4 3 1.2-6-4.5-4.2 6.1-.7z"/></symbol>
+  <symbol id="i-planet" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor"/><ellipse cx="12" cy="12" rx="11" ry="3.2" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-18 12 12)"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2z"/></symbol>
+  <symbol id="i-rose" viewBox="0 0 24 24"><path d="M12 22c0-5 .5-8 0-11" stroke="#4f7d48" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M12 15c3-2 5-1.5 6 0-2.5 1.2-4.5 1-6 0z" fill="#5f8f55"/><circle cx="12" cy="7.5" r="4.6" fill="#c4433b"/><path d="M7.8 7c1.3-3.6 7.1-3.6 8.4 0-2.4-1.6-6-1.6-8.4 0z" fill="#e0574c"/></symbol>
+</svg>
+<main>
+
+<!-- ========== 开头：月亮上的分数 ========== -->
+<header class="hero">
+  <svg class="hero-art" viewBox="0 0 360 250" role="img" aria-label="月亮上写着本次得分 {{得分}}，满分 {{满分}}">
+    <defs>
+      <filter id="wc" x="-15%" y="-15%" width="130%" height="130%">
+        <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="3" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <radialGradient id="moonFill" cx="38%" cy="32%" r="72%">
+        <stop offset="0" stop-color="#fdf4da"/><stop offset=".55" stop-color="#f1dfae"/><stop offset="1" stop-color="#c9ad74"/>
+      </radialGradient>
+      <radialGradient id="planetFill" cx="35%" cy="30%" r="75%">
+        <stop offset="0" stop-color="#fadf98"/><stop offset="1" stop-color="#d6923a"/>
+      </radialGradient>
+      <linearGradient id="trail" x1="0" x2="1"><stop offset="0" stop-color="#fff6dc"/><stop offset="1" stop-color="#fff6dc" stop-opacity="0"/></linearGradient>
+    </defs>
+    <g fill="#fffbe9" opacity=".85">
+      <circle cx="58" cy="18" r="1.4"/><circle cx="178" cy="40" r="1.1"/><circle cx="240" cy="110" r="1.3"/><circle cx="16" cy="120" r="1"/><circle cx="342" cy="20" r="1.2"/><circle cx="300" cy="230" r="1.1"/><circle cx="214" cy="236" r="1"/>
+    </g>
+    <g color="#f2c75c">
+      <use href="#i-star" x="18" y="34" width="15" height="15"/>
+      <use href="#i-star" x="206" y="16" width="17" height="17"/>
+      <use href="#i-star" x="252" y="150" width="12" height="12"/>
+      <use href="#i-star" x="334" y="112" width="14" height="14"/>
+      <use href="#i-star" x="14" y="200" width="11" height="11"/>
+      <use href="#i-star" x="226" y="200" width="10" height="10"/>
+    </g>
+    <path d="M276 228 L334 206" stroke="url(#trail)" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="276" cy="228" r="2.6" fill="#fff6dc"/>
+    <g transform="translate(296 64) rotate(-16)" filter="url(#wc)">
+      <ellipse rx="42" ry="9.5" fill="none" stroke="#e5bd70" stroke-width="3"/>
+      <circle r="24" fill="url(#planetFill)"/>
+      <path d="M-42 0 A42 9.5 0 0 0 42 0" fill="none" stroke="#f4d690" stroke-width="3"/>
+      <path d="M-17 -7 q17 -6 34 0" stroke="#c4822d" stroke-width="2" fill="none" opacity=".45"/>
+    </g>
+    <circle cx="44" cy="96" r="7" fill="#9fb2df" opacity=".8"/>
+    <circle cx="330" cy="178" r="5" fill="#e9d29a" opacity=".85"/>
+    <g filter="url(#wc)">
+      <circle cx="132" cy="150" r="86" fill="url(#moonFill)"/>
+      <g fill="#cfb57c" opacity=".5">
+        <circle cx="86" cy="118" r="12"/><circle cx="168" cy="104" r="7"/><circle cx="184" cy="186" r="14"/><circle cx="96" cy="200" r="9"/><circle cx="70" cy="160" r="5"/><circle cx="150" cy="214" r="5"/>
+      </g>
+    </g>
+    <g transform="translate(160 70) rotate(18)">
+      <path d="M0 0 C 2 -12, -4 -22, 2 -36" stroke="#4f7d48" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M1 -14 C 9 -19, 15 -15, 16 -9 C 10 -8, 5 -10, 1 -14Z" fill="#5f8f55"/>
+      <path d="M0 -23 C -8 -27, -14 -23, -15 -18 C -9 -17, -4 -19, 0 -23Z" fill="#5f8f55"/>
+      <g transform="translate(2 -42)">
+        <circle r="8" fill="#c4433b"/>
+        <path d="M-7.5 -1 C -5 -10, 5 -10, 7.5 -1 C 3 -5.5, -3 -5.5, -7.5 -1Z" fill="#e0574c"/>
+        <path d="M-4 2.5 C -2 -3, 3 -3, 4 2.5" stroke="#8f2a25" stroke-width="1" fill="none"/>
+      </g>
+    </g>
+    <text x="132" y="160" text-anchor="middle" class="moon-score">{{得分}}</text>
+    <text x="132" y="188" text-anchor="middle" class="moon-full">满分 {{满分}}</text>
+  </svg>
+  <p class="eyebrow">{{科目}} · {{考试名}} · {{考试日期}}</p>
+  <h1>试卷复盘</h1>
+  <p class="lede">{{一句话结论，例如：丢的 17 分里，有 12 分最容易拿回来}}</p>
+</header>
+
+<!-- ========== 诊断 ========== -->
+<section class="sheet" id="score">
+  <h2><svg class="ico"><use href="#i-planet"/></svg>得分结构</h2>
+  <div class="bars">
+    <!-- 每个题型或模块一行，按失分从高到低；得分率低于 70% 的加 class="low" -->
+    <div class="bar"><span>{{题型}}</span><span class="bar-track"><span class="bar-fill" style="--p:{{得分率}}%"></span></span><span class="bar-num">{{得分}}<small>/{{满分}}</small></span></div>
+  </div>
+  <p class="note">{{丢分分布的一句话观察}}</p>
+</section>
+
+<section class="sheet" id="recover">
+  <h2><svg class="ico"><use href="#i-star"/></svg>最该拿回的分</h2>
+  <div class="recover">
+    <div class="badge"><svg viewBox="0 0 20 20"><use href="#i-star"/></svg><b>{{N}}</b><span>分</span></div>
+    <div>
+      <p>{{第 x 题 y 分：原因，为什么容易拿回}}</p>
+      <p class="note">{{属于提升目标、不计入的分}}</p>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="causes">
+  <h2><svg class="ico"><use href="#i-moon"/></svg>共同病因</h2>
+  <!-- 最多 3 条；每条至少引用两道题。找不到就写一句"这次没有明显的共同病因"，不要硬凑 -->
+  <ol class="causes">
+    <li class="cause">
+      <div class="cause-num">1</div>
+      <div>
+        <h3>{{病因}}</h3>
+        <div class="chips"><span class="chip">第 {{a}} 题</span><span class="chip">第 {{b}} 题</span><span class="chip lost">共丢 {{n}} 分</span></div>
+        <p>{{为什么判断它们同源}}</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section class="sheet" id="kp">
+  <h2><svg class="ico"><use href="#i-star"/></svg>知识点星图</h2>
+  <p class="note">{{有历史记录时：这些知识点在不同考试里反复出错，很可能还没真正掌握。没有历史时：这次错题涉及下面这些知识点；下次考完带上错题档案，就能看出哪些在反复出错。}}</p>
+  <ul class="kp-list">
+    <!-- 反复出错的加 class="weak"，出现次数用 ★ 表示 -->
+    <li class="kp weak">
+      <div class="kp-head"><span class="kp-name">{{知识点}}</span><span class="kp-count">{{★★}} 出现 {{n}} 次</span></div>
+      <p class="kp-loc">回到教材：<b>{{教材位置}}</b></p>
+      <p class="kp-meta">{{证据：哪次考试第几题}} · {{知识点 ID}}</p>
+    </li>
+  </ul>
+</section>
+
+<section class="sheet" id="tips">
+  <h2><svg class="ico"><use href="#i-star"/></svg>下次答题提醒</h2>
+  <ul class="stars">
+    <li>{{具体提醒}}（第 {{x}} 题）</li>
+  </ul>
+</section>
+
+<section class="sheet" id="actions">
+  <h2><svg class="ico"><use href="#i-rose"/></svg>下周行动</h2>
+  <ol class="todo">
+    <li>{{做什么、做多少、怎样算完成}}</li>
+  </ol>
+</section>
+
+<!-- 有错题档案、且档案里不止这一次考试时才保留这一段 -->
+<section class="sheet" id="history">
+  <h2><svg class="ico"><use href="#i-moon"/></svg>和以前比</h2>
+  <ul class="stars">
+    <li>{{例：习惯失误丢分 15 分 → 11 分，在变少}}</li>
+  </ul>
+</section>
+
+<!-- ========== 错题卡 ========== -->
+<h2 class="sky-title"><svg class="ico"><use href="#i-star"/></svg>错题卡</h2>
+<p class="sky-note no-print">提示默认收起。先自己想，卡住了再点开提示 1，还不行再看提示 2。</p>
+<section class="sheet break" id="cards">
+  <!-- 每道错题复制一个 .card -->
+  <div class="card">
+    <div class="card-head">
+      <span class="qno">{{题号}}</span>
+      <span class="card-title"><b>{{模块}} · {{知识点}}</b><br>丢 {{分}} 分</span>
+    </div>
+    <p><span class="tag">{{一级错因}}</span>{{具体错因}}</p>
+    <p><b>卡点：</b>{{卡在哪一步}}</p>
+    <p><b>核心思路：</b>{{一句话}}</p>
+    <details><summary>提示 1（只点方向）</summary><p>{{提示 1}}</p></details>
+    <details><summary>提示 2（关键步骤）</summary><p>{{提示 2}}</p></details>
+    <p class="note">完整解答在最后的"对答案区"。</p>
+  </div>
+</section>
+
+<!-- ========== 闭卷重做单 ========== -->
+<h2 class="sky-title"><svg class="ico"><use href="#i-planet"/></svg>闭卷重做单</h2>
+<p class="sky-note">建议用时 {{分钟}} 分钟 · 合上答案和错题卡再做</p>
+<section class="sheet break" id="redo">
+  <p class="note no-print">请在纸上作答。打印这份报告时，每道题下面会自动留出作答空间。</p>
+  <!-- 每道题复制一个 .q；题干有任何一处拿不准，就写"见原卷第 X 题"，不要转写 -->
+  <div class="q">
+    <p><b>第 {{题号}} 题（{{分值}} 分）</b></p>
+    <p>{{题干}}</p>
+    <div class="space"></div>
+  </div>
+  <h3>重做完逐题自检（三项都打勾才算吃透）</h3>
+  <ul class="check">
+    <li>☐ 不看答案，能独立写出第一步突破口</li>
+    <li>☐ 推导完整，步骤流畅，没有卡顿</li>
+    <li>☐ 能说出这道题的陷阱或易错点</li>
+  </ul>
+  <p class="note">有任何一项没打勾的，在题号旁画圈，这道题进入二刷。</p>
+</section>
+
+<!-- ========== 复习日程与归档 ========== -->
+<section class="sheet break" id="plan">
+  <h2><svg class="ico"><use href="#i-moon"/></svg>复习日程与归档</h2>
+  <ul class="stars">
+    <li>今天：做完闭卷重做单，把结果告诉 Claude</li>
+    <li>{{明天日期}}：回看一遍错题卡</li>
+    <li>{{一周后日期}}：二刷画圈的题</li>
+  </ul>
+  <h3>这张卷子怎么收</h3>
+  <p>{{整张保留 / 刷题卷 / 只剪典型题，以及理由；电子卷写导出和加书签的做法}}</p>
+  <h3>错题档案</h3>
+  <p>{{错题档案保存在哪里；下次怎么带上}}</p>
+</section>
+
+<!-- ========== 对答案区 ========== -->
+<h2 class="sky-title"><svg class="ico"><use href="#i-star"/></svg>对答案区</h2>
+<p class="sky-note">重做完再看</p>
+<section class="sheet break" id="answers">
+  <details>
+    <summary>点开查看全部答案</summary>
+    <!-- 每道题复制一个 .answer -->
+    <div class="answer">
+      <h3>第 {{题号}} 题</h3>
+      <p class="note">来源：{{来自你提供的答案 / AI 解答，未经核对}}</p>
+      <p><b>答案：</b>{{答案}}</p>
+      <p><b>解答：</b>{{完整解答或要点}}</p>
+      <p><b>得分点：</b>{{得分点}}</p>
+    </div>
+  </details>
+</section>
+
+<footer>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-rose"/></svg>
+  下次考完，把「错题档案」和新试卷一起带来
+</footer>
+
+</main>
+<script>
+  // 打印时展开所有折叠内容，打印结束后恢复原状
+  (function () {
+    var opened = [];
+    window.addEventListener('beforeprint', function () {
+      opened = [];
+      document.querySelectorAll('details:not([open])').forEach(function (d) {
+        d.open = true;
+        opened.push(d);
+      });
+    });
+    window.addEventListener('afterprint', function () {
+      opened.forEach(function (d) { d.open = false; });
+    });
+  })();
+</script>
+</body>
+</html>

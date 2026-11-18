@@ -1,0 +1,61 @@
+<form class="elicit">
+  <div class="elicit-header">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M11.586 2a1.5 1.5 0 0 1 1.06.44l2.914 2.914a1.5 1.5 0 0 1 .44 1.06V16.5a1.5 1.5 0 0 1-1.5 1.5h-9a1.5 1.5 0 0 1-1.492-1.347L4 16.5v-13A1.5 1.5 0 0 1 5.5 2zM5.5 3a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h-2.5A1.5 1.5 0 0 1 11 5.5V3zm7.04 10.304a.5.5 0 0 1 .92.392c-.295.69-.871 1.304-1.66 1.304-.487 0-.892-.234-1.2-.574-.309.34-.713.574-1.2.574-.486 0-.892-.233-1.2-.574-.31.34-.714.574-1.2.574a.5.5 0 0 1 0-1c.212 0 .52-.18.74-.696l.034-.067a.5.5 0 0 1 .886.067c.221.516.528.696.74.696.213 0 .52-.18.74-.696l.035-.067a.5.5 0 0 1 .885.067c.22.516.527.696.74.696s.519-.18.74-.696m0-4a.5.5 0 0 1 .92.392c-.295.69-.871 1.304-1.66 1.304-.487 0-.892-.234-1.2-.574-.309.34-.713.574-1.2.574-.486 0-.892-.233-1.2-.574-.31.34-.714.574-1.2.574a.5.5 0 0 1 0-1c.212 0 .52-.18.74-.696l.034-.067a.5.5 0 0 1 .886.067c.221.516.528.696.74.696.213 0 .52-.18.74-.696l.035-.067a.5.5 0 0 1 .885.067c.22.516.527.696.74.696s.519-.18.74-.696M12 5.5a.5.5 0 0 0 .5.5h2.293L12 3.207z"/></svg>
+    <span>试卷信息</span>
+  </div>
+  <div class="elicit-body">
+
+    <div class="elicit-group">
+      <label class="elicit-question">{{识别摘要，例如：我认出这是一张高三一模数学卷，133/150，扣分在第 11、14、18(ii)、19(3) 题。识别得对吗？}}</label>
+      <div class="elicit-pills" data-name="识别结果" data-multi="false">
+        <button type="button" class="elicit-pill" data-value="都对"
+          style="border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; text-align:left; min-width:180px; box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <i class="ti ti-circle-check" style="font-size:20px" aria-hidden="true"></i>
+          <span><span style="font-size:13px; font-weight:500">都对</span><br><span style="font-size:11px; color:var(--text-muted)">分数和题号没问题</span></span>
+        </button>
+        <button type="button" class="elicit-pill" data-value="有地方要改" data-other
+          style="border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; text-align:left; min-width:180px; box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <i class="ti ti-edit" style="font-size:20px" aria-hidden="true"></i>
+          <span><span style="font-size:13px; font-weight:500">有地方要改</span><br><span style="font-size:11px; color:var(--text-muted)">告诉我哪里认错了</span></span>
+        </button>
+      </div>
+      <input type="text" class="elicit-other" data-for="识别结果" placeholder="例如：第 9 题其实是 6 分不是 4 分" hidden>
+    </div>
+
+    <div class="elicit-group">
+      <label class="elicit-question">第 {{题号}} 题（{{题型}} · {{内容}}，扣 {{分}} 分）当时是什么情况？</label>
+      <div class="elicit-pills" data-name="第{{题号}}题" data-multi="false">
+        <button type="button" class="elicit-pill" data-value="没时间">没时间</button>
+        <button type="button" class="elicit-pill" data-value="没思路">没思路</button>
+        <button type="button" class="elicit-pill" data-value="中间卡住">中间卡住</button>
+        <button type="button" class="elicit-pill" data-value="算错写错">算错写错</button>
+        <button type="button" class="elicit-pill" data-value="看错漏条件">看错漏条件</button>
+        <button type="button" class="elicit-pill" data-value="概念不会">概念不会</button>
+        <button type="button" class="elicit-pill" data-value="其他" data-other>其他</button>
+      </div>
+      <input type="text" class="elicit-other" data-for="第{{题号}}题" placeholder="用一句话说说" hidden>
+    </div>
+
+    <div class="elicit-group">
+      <label class="elicit-question">{{时间标注问题，例如：第 14 题旁边写着 22:20，这是做到这里的时间吗？考试几点开始的？}}</label>
+      <textarea class="elicit-textarea" data-name="时间说明" placeholder="例如：是做到第 14 题的时间，21:00 开考"></textarea>
+    </div>
+
+    <div class="elicit-group">
+      <label class="elicit-question">手头有标准答案吗？有的话传上来，我对照着讲会更准。</label>
+      <div class="elicit-files" data-name="标准答案">
+        <label class="elicit-dropzone">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M16.5 13a.5.5 0 0 1 .5.5v2a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 15.5v-2a.5.5 0 0 1 1 0v2a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 .5-.5M10 3a.5.5 0 0 1 .374.168l4 4.5.059.082a.5.5 0 0 1-.732.65l-.075-.068L10.5 4.814V13.5a.5.5 0 0 1-1 0V4.814L6.374 8.332a.5.5 0 0 1-.748-.664l4-4.5.08-.071A.5.5 0 0 1 10 3"/></svg>
+          <span>选择文件</span>
+          <input type="file" multiple>
+        </label>
+      </div>
+      <textarea class="elicit-textarea" data-name="标准答案_text" placeholder="或者把答案直接粘贴在这里"></textarea>
+    </div>
+
+  </div>
+  <div class="elicit-footer">
+    <button type="button" class="elicit-skip">直接出结果</button>
+    <button type="button" class="elicit-submit">提交</button>
+  </div>
+</form>
