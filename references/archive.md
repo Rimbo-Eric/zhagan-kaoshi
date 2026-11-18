@@ -78,32 +78,32 @@ UTF-8 编码的 JSON：
 
 ## 6. 用 scripts/archive.py 操作
 
-只用 Python 标准库。带日期的命令都可以加 `--today YYYY-MM-DD`，不加就用系统日期。学生上传的档案可能放在只读位置，先复制到可写的输出目录，再对副本操作。
+只用 Python 标准库。下面的 `scripts/archive.py` 指本技能目录里的脚本，运行时要写完整路径（见 SKILL.md 的「运行脚本」）。带日期的命令都可以加 `--today YYYY-MM-DD`，不加就用系统日期。学生上传的档案可能放在只读位置，先复制到可写的输出目录，再对副本操作。
 
 ```bash
 # 新建档案，或更新学生信息
-python scripts/archive.py init --archive 错题档案.json --stage 高中 --grade 高三 --textbook 数学=人教A版
+python3 scripts/archive.py init --archive 错题档案.json --stage 高中 --grade 高三 --textbook 数学=人教A版
 
 # 查知识点 ID（关键词用教材里的说法；可以给多个，按命中个数排序）
-python scripts/archive.py kp-search --subject 数学 --stage 高中 --q 导数 --q 零点
+python3 scripts/archive.py kp-search --subject 数学 --stage 高中 --q 导数 --q 零点
 
 # 写入本次考试和错题。本次.json 的格式：{"exam": {...}, "mistakes": [{...}, ...]}
-python scripts/archive.py merge --archive 错题档案.json --new 本次.json
+python3 scripts/archive.py merge --archive 错题档案.json --new 本次.json
 
 # 记录一次闭卷重做的结果
-python scripts/archive.py update --archive 错题档案.json --id 2026-03-05-数学-19(3) --result pass
+python3 scripts/archive.py update --archive 错题档案.json --id 2026-03-05-数学-19(3) --result pass
 
 # 列出今天该复习的题
-python scripts/archive.py due --archive 错题档案.json
+python3 scripts/archive.py due --archive 错题档案.json
 
 # 跨考试报告（Markdown）
-python scripts/archive.py report --archive 错题档案.json --subject 数学
+python3 scripts/archive.py report --archive 错题档案.json --subject 数学
 ```
 
 `kp-search` 是按字面匹配的。知识点名称沿用教材的课题或节名，按概念搜不到时（例如高中历史搜"洋务"），换成课题名、单元名再搜，或者用下面的命令列出整张地图，按单元去找：
 
 ```bash
-python scripts/archive.py kp-search --subject 历史 --stage 高中 --limit 300
+python3 scripts/archive.py kp-search --subject 历史 --stage 高中 --limit 300
 ```
 
 `merge` 的提示要逐条看：知识点 ID 不在地图里、错因类别写错、丢分不是数字，都会列出来。

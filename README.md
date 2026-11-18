@@ -22,6 +22,20 @@
 git clone https://github.com/Rimbo-Eric/exam-review.git ~/.claude/skills/exam-review
 ```
 
+**WorkBuddy（腾讯）**：WorkBuddy 会扫描自己的技能目录 `~/.workbuddy/skills/`，里面带 SKILL.md 的文件夹都会注册成技能。
+
+```bash
+git clone https://github.com/Rimbo-Eric/exam-review.git ~/.workbuddy/skills/exam-review
+```
+
+Windows 上一般是用户目录下的 `.workbuddy\skills\`（还没在 Windows 上验证过）。使用时请选能操作文件的模式：Ask（只读）模式和 Quick（问答）模式不能生成报告和错题档案。
+
+## 兼容性说明
+
+- **确认卡**：在支持表单的 Claude 应用里是一张可以点选的卡片；在 Claude Code、WorkBuddy 里会分几次弹出点选问题；都不支持时退回文字。
+- **脚本**：错题档案工具需要 Python 3（只用标准库）。没有 Python 时，Claude 会直接按格式读写错题档案。
+- **报告**：是一个普通的 HTML 文件，手机、电脑的浏览器都能打开。标题字体从网络加载，连不上时（例如在国内连不上 Google Fonts）页面照常显示，标题改用系统宋体。
+
 ## 怎么用
 
 1. 把批改过的试卷拍照（或导出 PDF）发给 Claude，说一句"帮我复盘这张卷子"。

@@ -15,7 +15,8 @@
 <title>试卷复盘｜{{科目}} · {{考试名}}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<!-- 字体不阻塞页面：连不上 Google Fonts（例如在国内）时照常显示，标题改用系统宋体 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
   :root {
     --night: #111a42;
@@ -32,7 +33,7 @@
     --leaf: #4f7d48;
     --cream: #f6eed6;
     --cream-soft: #c9d0ea;
-    --display: "Noto Serif SC", "Songti SC", "STSong", serif;
+    --display: "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif;
     --body: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   }
   * { box-sizing: border-box; }
