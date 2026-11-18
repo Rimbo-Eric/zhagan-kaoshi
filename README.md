@@ -1,6 +1,6 @@
-# 试卷复盘（exam-review）
+# 榨干考试
 
-一个给初高中学生用的 Claude skill：把考完、批改过的试卷拍照发给 Claude，它会帮你把这张卷子变成一份看得懂的诊断、一组必须亲手重做的错题，以及一份能跨考试累积的错题档案。
+一个给初高中学生用的 Claude skill（技能 ID：`zhagan-kaoshi`）：把考完、批改过的试卷拍照发给 Claude，它会帮你把这张卷子榨干，变成一份看得懂的诊断、一组必须亲手重做的错题，以及一份能跨考试累积的错题档案。
 
 各科通用，包括语文、英语、政治、历史、地理等文科。
 
@@ -14,18 +14,18 @@
 
 ## 安装
 
-**Claude 网页版、桌面版或 App**：在 [Releases](../../releases) 下载 `exam-review.skill`，在 Claude 的设置里找到 Skills，上传这个文件。
+**Claude 网页版、桌面版或 App**：在 [Releases](../../releases) 下载 `zhagan-kaoshi.skill`，在 Claude 的设置里找到 Skills，上传这个文件。
 
 **Claude Code**：
 
 ```bash
-git clone https://github.com/Rimbo-Eric/exam-review.git ~/.claude/skills/exam-review
+git clone https://github.com/Rimbo-Eric/zhagan-kaoshi.git ~/.claude/skills/zhagan-kaoshi
 ```
 
 **WorkBuddy（腾讯）**：WorkBuddy 会扫描自己的技能目录 `~/.workbuddy/skills/`，里面带 SKILL.md 的文件夹都会注册成技能。
 
 ```bash
-git clone https://github.com/Rimbo-Eric/exam-review.git ~/.workbuddy/skills/exam-review
+git clone https://github.com/Rimbo-Eric/zhagan-kaoshi.git ~/.workbuddy/skills/zhagan-kaoshi
 ```
 
 Windows 上一般是用户目录下的 `.workbuddy\skills\`（还没在 Windows 上验证过）。使用时请选能操作文件的模式：Ask（只读）模式和 Quick（问答）模式不能生成报告和错题档案。
@@ -38,7 +38,7 @@ Windows 上一般是用户目录下的 `.workbuddy\skills\`（还没在 Windows 
 
 ## 怎么用
 
-1. 把批改过的试卷拍照（或导出 PDF）发给 Claude，说一句"帮我复盘这张卷子"。
+1. 把批改过的试卷拍照（或导出 PDF）发给 Claude，说一句"榨干这张卷子"或"帮我复盘这张卷子"。
 2. 在确认卡里点选每道错题当时的情况。不想答也可以点"直接出结果"。
 3. 拿到报告后，先做闭卷重做单，做完把结果告诉 Claude。
 4. **保存好 `错题档案.json`**。下次考完把它和新试卷一起发给 Claude，或者放进 Claude 项目的文件里，就能看到跨考试的变化。
