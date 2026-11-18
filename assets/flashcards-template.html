@@ -1,0 +1,355 @@
+<!doctype html>
+<!--
+  错题闪卡模板（榨干考试）
+  不要手动填写：由 scripts/archive.py flashcards 从错题档案生成，脚本会把卡片数据填进页面底部 id 为 deck 的 script 标签。
+  所有卡片内容都用 textContent 写入页面，不会被当成 HTML 执行。
+  复习进度保存在浏览器的 localStorage 里（按档案的 profile.id 区分），读写失败时页面照常可用，只是不记进度。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>错题闪卡｜榨干考试</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 字体不阻塞页面：连不上 Google Fonts（例如在国内）时照常显示，标题改用系统宋体 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+  :root {
+    --night: #111a42;
+    --sky: #1b2c6e;
+    --sky-2: #2a4799;
+    --star: #f2c75c;
+    --paper: #fbf4e1;
+    --line: #dfcb9c;
+    --ink: #2a2733;
+    --ink-soft: #625b6c;
+    --rose: #c4433b;
+    --cream: #f6eed6;
+    --cream-soft: #c9d0ea;
+    --display: "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif;
+    --body: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--night); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--cream);
+    font: 16px/1.7 var(--body);
+    background-color: var(--sky);
+    background-image:
+      radial-gradient(1.3px 1.3px at 24px 36px, #fffbe9 55%, transparent 60%),
+      radial-gradient(1px 1px at 130px 90px, #ffffffcc 55%, transparent 60%),
+      radial-gradient(1.8px 1.8px at 200px 170px, #f2c75ccc 55%, transparent 60%),
+      radial-gradient(1px 1px at 70px 210px, #ffffffaa 55%, transparent 60%),
+      radial-gradient(70% 40% at 85% 6%, #4b6fc266, transparent 70%),
+      radial-gradient(60% 35% at 5% 55%, #2a479999, transparent 70%),
+      linear-gradient(180deg, var(--night) 0%, var(--sky) 40%, var(--sky-2) 100%);
+    background-size: 290px 240px, 290px 240px, 330px 280px, 290px 240px, 100% 100%, 100% 100%, 100% 100%;
+    background-attachment: scroll;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 18px 16px 36px; }
+  header { text-align: center; }
+  .moon { width: 46px; height: 46px; display: block; margin: 0 auto 4px; }
+  h1 { margin: 0; font: 700 26px/1.3 var(--display); letter-spacing: .12em; }
+  .sub { margin: 2px 0 0; font-size: 13px; color: var(--cream-soft); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 16px 0 6px; }
+  .seg { display: inline-flex; background: rgba(255, 255, 255, .09); border-radius: 999px; padding: 3px; }
+  .seg button, .ghost, select {
+    border: 0; background: transparent; color: var(--cream-soft); padding: 6px 12px; border-radius: 999px;
+    font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--star); color: #3a2c0c; font-weight: 600; }
+  .ghost, select { background: rgba(255, 255, 255, .09); border: 1px solid rgba(255, 255, 255, .16); color: var(--cream); }
+  select option { color: #222; }
+  .progress { text-align: center; font-size: 13px; color: var(--cream-soft); margin: 8px 0 12px; min-height: 1.7em; }
+  .progress b { color: var(--star); font-weight: 600; }
+
+  .stage { perspective: 1400px; }
+  .card { display: grid; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.2, .7, .2, 1); cursor: pointer; outline: none; }
+  .card.flipped { transform: rotateY(180deg); }
+  .card:focus-visible .face { box-shadow: 0 0 0 3px var(--star), 0 12px 32px rgba(6, 12, 40, .4); }
+  .face {
+    grid-area: 1 / 1;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    min-height: 380px; display: flex; flex-direction: column;
+    padding: 20px 20px 16px; border-radius: 22px 20px 24px 18px; color: var(--ink);
+    background:
+      radial-gradient(120% 70% at 50% 0%, #fffaee 0%, transparent 70%),
+      radial-gradient(90% 60% at 100% 100%, #f1e1bd 0%, transparent 70%),
+      var(--paper);
+    box-shadow: 0 12px 32px rgba(6, 12, 40, .4), inset 0 0 0 1px rgba(255, 255, 255, .35);
+  }
+  .back { transform: rotateY(180deg); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-soft); }
+  .chip { padding: 1px 8px; border-radius: 999px; background: #e9ddc0; color: #4b4252; }
+  .chip.lost { background: #f3d7cf; color: #8e2c25; }
+  .chip.status { background: #dfe6f7; color: #24366f; }
+  .qno {
+    display: inline-grid; place-items: center; min-width: 34px; height: 34px; padding: 0 6px; border-radius: 17px;
+    font: 700 15px/1 var(--display); color: #4a3a1c; background: radial-gradient(circle at 35% 30%, #fbe7a6, var(--star));
+  }
+  .stem { margin: 16px 0 12px; font-size: 17px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+  .stem.thin { color: var(--ink-soft); font-size: 15px; }
+  .prompt { margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 14px; color: var(--sky); }
+  .tap { margin-top: 6px; text-align: center; font-size: 12px; color: var(--ink-soft); }
+  .tag { display: inline-block; margin-right: 6px; padding: 0 8px; border-radius: 6px; font-size: 12px; background: var(--sky); color: var(--cream); vertical-align: 1px; }
+  .row { margin: 10px 0 0; }
+  .row h3 { margin: 0 0 2px; font-size: 12px; font-weight: 600; color: var(--ink-soft); letter-spacing: .04em; }
+  .row p { margin: 0; white-space: pre-wrap; word-break: break-word; }
+  .idea { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #f6e3a8; }
+  .idea h3 { color: #6a4f12; }
+  .where { font-size: 14px; color: var(--sky); }
+  .answer-btn {
+    margin-top: 12px; align-self: flex-start; border: 1px solid #c9a75b; background: transparent; color: #7a5a17;
+    border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .answer { display: none; margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: #fffaf0; border: 1px dashed var(--line); }
+  .answer.show { display: block; }
+
+  .actions { display: flex; gap: 12px; margin-top: 16px; }
+  .actions[hidden] { display: none; }
+  .actions button { flex: 1; border: 0; border-radius: 14px; padding: 14px 10px; font: 600 16px var(--body); cursor: pointer; }
+  .again { background: #f3d7cf; color: #8e2c25; }
+  .good { background: var(--star); color: #3a2c0c; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .nav .ghost[disabled] { opacity: .4; cursor: default; }
+  .empty { padding: 56px 16px; text-align: center; border-radius: 22px; background: rgba(255, 255, 255, .06); }
+  .empty h2 { margin: 0 0 6px; font: 700 20px/1.4 var(--display); }
+  .empty p { margin: 0; color: var(--cream-soft); font-size: 14px; }
+  .empty[hidden], .stage[hidden], .nav[hidden] { display: none; }
+  .foot { margin-top: 26px; text-align: center; font-size: 12px; color: var(--cream-soft); line-height: 1.8; }
+  .foot button { margin-top: 6px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="moon" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="26" r="17" fill="#f1dfae"/>
+      <circle cx="17" cy="22" r="3" fill="#d9c189" opacity=".7"/><circle cx="29" cy="31" r="4" fill="#d9c189" opacity=".6"/>
+      <path d="M27 9 C 28 6, 26 4, 28 1" stroke="#4f7d48" stroke-width="1.6" fill="none"/>
+      <circle cx="28" cy="2.5" r="2.6" fill="#c4433b"/>
+    </svg>
+    <h1>错题闪卡</h1>
+    <p class="sub" id="deckTitle"></p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="查看范围">
+      <button type="button" data-mode="due" aria-pressed="true">今天要刷</button>
+      <button type="button" data-mode="open" aria-pressed="false">没掌握的</button>
+      <button type="button" data-mode="all" aria-pressed="false">全部</button>
+    </div>
+    <select id="subject" aria-label="科目" hidden></select>
+    <button type="button" class="ghost" id="shuffle">打乱顺序</button>
+  </div>
+  <p class="progress" id="progress" aria-live="polite"></p>
+
+  <div class="stage" id="stage">
+    <div class="card" id="card" tabindex="0" role="button" aria-label="闪卡，点按翻面">
+      <section class="face front" aria-hidden="false">
+        <div class="meta"><span class="qno" id="fQ"></span><span id="fExam"></span><span class="chip lost" id="fLost"></span><span class="chip status" id="fStatus"></span></div>
+        <p class="stem" id="fStem"></p>
+        <p class="prompt">想一想：这道题当时卡在哪？正确的突破口是什么？</p>
+        <p class="tap">点卡片翻面</p>
+      </section>
+      <section class="face back" aria-hidden="true">
+        <div class="meta"><span class="qno" id="bQ"></span><span id="bKp"></span></div>
+        <div class="row"><h3>当时错在哪</h3><p><span class="tag" id="bCat"></span><span id="bDetail"></span></p></div>
+        <div class="row" id="bStuckRow"><h3>卡点</h3><p id="bStuck"></p></div>
+        <div class="row idea" id="bIdeaRow"><h3>核心思路</h3><p id="bIdea"></p></div>
+        <div class="row" id="bWhereRow"><h3>回到教材</h3><p class="where" id="bWhere"></p></div>
+        <button type="button" class="answer-btn" id="answerBtn">看答案（闭卷重做过再看）</button>
+        <div class="answer" id="answer"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="actions" id="actions" hidden>
+    <button type="button" class="again" id="again">还不会</button>
+    <button type="button" class="good" id="good">记住了</button>
+  </div>
+  <div class="nav" id="nav">
+    <button type="button" class="ghost" id="prev">上一张</button>
+    <button type="button" class="ghost" id="next">下一张</button>
+  </div>
+
+  <div class="empty" id="empty" hidden>
+    <h2 id="emptyTitle">今天的卡片刷完了</h2>
+    <p id="emptyText">记住了的卡片会在 1、3、7、14 天后再出现。想多刷几张，可以切到"全部"。</p>
+  </div>
+
+  <p class="foot">
+    榨干考试 · 闪卡进度只保存在这台设备的浏览器里<br>
+    闭卷重做的结果，记得告诉 Claude，记进错题档案<br>
+    <button type="button" class="ghost" id="reset">重置闪卡进度</button>
+  </p>
+  <p class="sr" id="sr" aria-live="polite"></p>
+</main>
+
+<script type="application/json" id="deck">__DECK_JSON__</script>
+<script>
+(function () {
+  var deck;
+  try { deck = JSON.parse(document.getElementById('deck').textContent); }
+  catch (e) { deck = { title: '', cards: [] }; }
+  var cards = Array.isArray(deck.cards) ? deck.cards : [];
+  var KEY = 'zhagan-kaoshi:flash:' + (deck.deck_id || 'default');
+  var INTERVALS = [0, 1, 3, 7, 14, 30];
+
+  var prog = {};
+  try { prog = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { prog = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(prog)); } catch (e) {} }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function today() { return fmt(new Date()); }
+  function addDays(s, n) { var p = s.split('-').map(Number); return fmt(new Date(p[0], p[1] - 1, p[2] + n)); }
+  function isDue(c) { var p = prog[c.id]; return !p || !p.due || p.due <= today(); }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var card = $('card'), front = card.querySelector('.front'), back = card.querySelector('.back');
+  var mode = 'due', subject = '全部', queue = [], idx = 0, flipped = false;
+
+  $('deckTitle').textContent = (deck.title ? deck.title + ' · ' : '') + '共 ' + cards.length + ' 张';
+
+  var subjects = cards.map(function (c) { return c.subject; }).filter(function (s, i, a) { return s && a.indexOf(s) === i; });
+  if (subjects.length > 1) {
+    var sel = $('subject');
+    ['全部'].concat(subjects).forEach(function (s) { var o = document.createElement('option'); o.value = s; o.textContent = s === '全部' ? '全部科目' : s; sel.appendChild(o); });
+    sel.hidden = false;
+    sel.addEventListener('change', function () { subject = sel.value; build(); });
+  }
+
+  function set(id, text) { $(id).textContent = text || ''; }
+  function show(id, on) { $(id).style.display = on ? '' : 'none'; }
+
+  function build() {
+    queue = cards.filter(function (c) {
+      if (subject !== '全部' && c.subject !== subject) return false;
+      if (mode === 'all') return true;
+      if (mode === 'open') return c.status !== '已掌握';
+      return isDue(c);
+    });
+    idx = 0;
+    render();
+  }
+
+  function dueCount() { return cards.filter(function (c) { return (subject === '全部' || c.subject === subject) && isDue(c); }).length; }
+
+  function render() {
+    var empty = queue.length === 0 || idx >= queue.length;
+    $('stage').hidden = empty; $('nav').hidden = empty; $('empty').hidden = !empty;
+    $('actions').hidden = true;
+    if (empty) {
+      if (queue.length && mode === 'due') { set('emptyTitle', '今天的卡片刷完了'); set('emptyText', '记住了的卡片会在 1、3、7、14 天后再出现。想多刷几张，可以切到"全部"。'); }
+      else if (queue.length) { set('emptyTitle', '这一轮刷完了'); set('emptyText', '想再来一轮，点一下上面的查看范围就会重新开始。'); }
+      else if (mode === 'due' && cards.length) { set('emptyTitle', '今天没有要刷的卡片'); set('emptyText', '记住了的卡片会在 1、3、7、14 天后再出现。想多刷几张，可以切到"全部"。'); }
+      else { set('emptyTitle', '这里没有卡片'); set('emptyText', cards.length ? '换一个查看范围或科目试试。' : '错题档案里还没有错题。'); }
+      set('progress', '今天要刷 ' + dueCount() + ' 张');
+      return;
+    }
+    var c = queue[idx];
+    flipped = false; card.classList.remove('flipped');
+    front.setAttribute('aria-hidden', 'false'); back.setAttribute('aria-hidden', 'true');
+    set('fQ', c.q); set('bQ', c.q);
+    set('fExam', [c.subject, c.exam].filter(Boolean).join(' · '));
+    set('fLost', c.lost ? '丢 ' + c.lost + ' 分' : ''); show('fLost', !!c.lost);
+    set('fStatus', c.status); show('fStatus', !!c.status);
+    var stem = c.stem || ('见原卷：' + (c.exam || '') + ' 第 ' + c.q + ' 题' + (c.kp ? '（' + c.kp + '）' : ''));
+    set('fStem', stem); $('fStem').className = 'stem' + (c.stem ? '' : ' thin');
+    set('bKp', c.kp);
+    set('bCat', c.cat); show('bCat', !!c.cat);
+    set('bDetail', c.detail);
+    set('bStuck', c.stuck); show('bStuckRow', !!c.stuck);
+    set('bIdea', c.idea); show('bIdeaRow', !!c.idea);
+    set('bWhere', c.where); show('bWhereRow', !!c.where);
+    set('answer', c.answer); $('answer').classList.remove('show');
+    show('answerBtn', !!c.answer); set('answerBtn', '看答案（闭卷重做过再看）');
+    $('prev').disabled = idx === 0;
+    $('progress').innerHTML = '';
+    var b = document.createElement('b'); b.textContent = (idx + 1) + ' / ' + queue.length;
+    $('progress').appendChild(document.createTextNode('第 ')); $('progress').appendChild(b);
+    $('progress').appendChild(document.createTextNode(' 张 · 今天要刷 ' + dueCount() + ' 张'));
+  }
+
+  function flip() {
+    if (!queue.length || idx >= queue.length) return;
+    flipped = !flipped;
+    card.classList.toggle('flipped', flipped);
+    front.setAttribute('aria-hidden', String(flipped)); back.setAttribute('aria-hidden', String(!flipped));
+    $('actions').hidden = !flipped;
+    set('sr', flipped ? '已翻到背面' : '已翻到正面');
+  }
+
+  function rate(ok) {
+    var c = queue[idx]; if (!c) return;
+    var p = prog[c.id] || { box: 0 };
+    if (ok) {
+      p.box = Math.min((p.box || 0) + 1, INTERVALS.length - 1);
+      p.due = addDays(today(), INTERVALS[p.box]);
+    } else {
+      p.box = 0; p.due = today();
+      queue.push(c);              // 本次还会再出现
+    }
+    p.last = today(); p.seen = (p.seen || 0) + 1;
+    prog[c.id] = p; save();
+    idx += 1; render();
+  }
+
+  card.addEventListener('click', function (e) {
+    if (e.target.closest('#answerBtn')) return;
+    flip();
+  });
+  $('answerBtn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    var a = $('answer'); var on = !a.classList.contains('show');
+    a.classList.toggle('show', on);
+    set('answerBtn', on ? '收起答案' : '看答案（闭卷重做过再看）');
+  });
+  $('again').addEventListener('click', function () { rate(false); });
+  $('good').addEventListener('click', function () { rate(true); });
+  $('prev').addEventListener('click', function () { if (idx > 0) { idx -= 1; render(); } });
+  $('next').addEventListener('click', function () { if (idx < queue.length) { idx += 1; render(); } });
+  $('shuffle').addEventListener('click', function () {
+    var rest = queue.slice(idx);
+    for (var i = rest.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
+    queue = queue.slice(0, idx).concat(rest); render();
+  });
+  document.querySelectorAll('.seg button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      mode = btn.getAttribute('data-mode');
+      document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === btn)); });
+      build();
+    });
+  });
+  var resetArmed = null;
+  $('reset').addEventListener('click', function () {
+    var btn = $('reset');
+    if (!resetArmed) {
+      btn.textContent = '再点一次确认重置';
+      resetArmed = setTimeout(function () { btn.textContent = '重置闪卡进度'; resetArmed = null; }, 3000);
+      return;
+    }
+    clearTimeout(resetArmed); resetArmed = null;
+    prog = {}; save(); btn.textContent = '已重置'; build();
+    setTimeout(function () { btn.textContent = '重置闪卡进度'; }, 1500);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'SELECT') return;
+    if (e.key === ' ' || e.key === 'Enter') { if (e.target === card || e.target === document.body) { e.preventDefault(); flip(); } }
+    else if (e.key === 'ArrowRight') { $('next').click(); }
+    else if (e.key === 'ArrowLeft') { $('prev').click(); }
+    else if (flipped && e.key === '1') { rate(false); }
+    else if (flipped && e.key === '2') { rate(true); }
+  });
+
+  build();
+})();
+</script>
+</body>
+</html>

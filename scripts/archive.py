@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""错题档案工具：建档、查知识点、写入新错题、记录重做结果、列出待复习的题、生成跨考试报告。
+"""错题档案工具：建档、查知识点、写入新错题、记录重做结果、列出待复习的题、生成跨考试报告和错题闪卡。
 
 只依赖 Python 标准库。错题档案是一个 UTF-8 编码的 JSON 文件（默认名"错题档案.json"），
 格式见 references/archive.md；知识点 ID 来自 references/knowledge-map/<科目>.md。
@@ -11,6 +11,7 @@
   python archive.py update    --archive 错题档案.json --id <id> --result pass|fail [--today YYYY-MM-DD]
   python archive.py due       --archive 错题档案.json [--subject 数学] [--today YYYY-MM-DD]
   python archive.py report    --archive 错题档案.json [--subject 数学]
+  python archive.py flashcards --archive 错题档案.json [--out 错题闪卡.html] [--subject 数学]
 """
 
 import argparse
@@ -18,11 +19,13 @@ import json
 import os
 import re
 import sys
+import uuid
 from collections import defaultdict
 from datetime import date, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAP_DIR = os.path.normpath(os.path.join(HERE, "..", "references", "knowledge-map"))
+FLASHCARD_TEMPLATE = os.path.normpath(os.path.join(HERE, "..", "assets", "flashcards-template.html"))
 
 SUBJECT_CODES = {
     "数学": "SX", "物理": "WL", "化学": "HX", "生物": "SW", "语文": "YW",
@@ -38,7 +41,9 @@ INTERVAL_AFTER_FAIL, INTERVAL_AFTER_FIRST_PASS, INTERVAL_AFTER_MASTERED = 1, 7, 
 MISTAKE_INPUT_FIELDS = [
     "exam_date", "exam_name", "subject", "question", "kp_id", "kp_name", "related_kp_ids",
     "category", "detail", "stuck_point", "points_lost", "source",
+    "stem", "key_idea", "answer",
 ]
+CARD_FIELDS = ["stem", "key_idea", "answer"]  # 闪卡用：题干、核心思路、答案（可选，可事后补）
 ROW_RE = re.compile(r"^\|\s*((?:CZ|GZ)-[A-Z]{2}-\d{2}-\d{2})\s*\|(.*)\|\s*$")
 
 _map_cache = {}
@@ -85,8 +90,11 @@ def load_map(subject):
     _map_status[subject] = "缺失"
     if os.path.exists(path):
         _map_status[subject] = "未注明"
+        edition = ""
         with open(path, encoding="utf-8") as f:
             for line in f:
+                if line.startswith("## ") and "教材：" in line:
+                    edition = line.split("教材：", 1)[1].strip().rstrip("）)").strip()
                 if "状态：" in line and _map_status[subject] == "未注明":
                     _map_status[subject] = "草稿" if "草稿" in line else ("已核对" if "已核对" in line else "未注明")
                 m = ROW_RE.match(line.strip())
@@ -94,7 +102,7 @@ def load_map(subject):
                     continue
                 cells = [c.strip() for c in m.group(2).split("|")]
                 cells += [""] * (3 - len(cells))
-                table[m.group(1)] = {"unit": cells[0], "name": cells[1], "location": cells[2]}
+                table[m.group(1)] = {"unit": cells[0], "name": cells[1], "location": cells[2], "edition": edition}
     _map_cache[subject] = table
     return table
 
@@ -228,7 +236,7 @@ def cmd_merge(args):
             data["exams"].append(exam)
 
     existing = {m["id"] for m in data["mistakes"]}
-    added, skipped = 0, []
+    added, skipped, filled = 0, [], []
     for i, item in enumerate(items, 1):
         r = {k: item.get(k) for k in MISTAKE_INPUT_FIELDS}
         for k in MISTAKE_INPUT_FIELDS:
@@ -242,7 +250,14 @@ def cmd_merge(args):
         parse_day(r["exam_date"])
         r["id"] = f"{r['exam_date']}-{r['subject']}-{r['question']}"
         if r["id"] in existing:
-            skipped.append(r["id"])
+            old = next(m for m in data["mistakes"] if m["id"] == r["id"])
+            added_fields = [k for k in CARD_FIELDS if r.get(k) and not old.get(k)]
+            for k in added_fields:
+                old[k] = r[k]
+            if added_fields:
+                filled.append(r["id"])
+            else:
+                skipped.append(r["id"])
             continue
         if r["category"] and r["category"] not in CATEGORIES:
             notes.append(f"第 {i} 条错因类别 {r['category']!r} 不在 {CATEGORIES} 中，请核对")
@@ -282,8 +297,13 @@ def cmd_merge(args):
 
     save_archive(args.archive, data)
     print(f"已写入 {added} 道错题，档案中共 {len(data['mistakes'])} 道错题、{len(data['exams'])} 次考试：{args.archive}")
+    if filled:
+        print(f"为 {len(filled)} 条已有记录补充了题干、核心思路或答案：{', '.join(filled)}")
     if skipped:
         print(f"跳过 {len(skipped)} 条已存在的记录：{', '.join(skipped)}")
+    missing_cards = [m["id"] for m in data["mistakes"] if not m.get("stem") or not m.get("key_idea")]
+    if missing_cards:
+        print(f"提示：{len(missing_cards)} 道错题还没有题干或核心思路，闪卡会显示得比较简略：{', '.join(missing_cards[:6])}{' …' if len(missing_cards) > 6 else ''}")
     for n in notes:
         print(f"注意：{n}")
 
@@ -468,6 +488,76 @@ def cmd_report(args):
         print("所有错题都已掌握。")
 
 
+def _question_key(q):
+    m = re.match(r"\d+", str(q))
+    return (int(m.group()) if m else 9999, str(q))
+
+
+def _textbook_matches(book, edition):
+    """学生的教材版本和地图默认版本是否一致。学生没写版本时，按地图默认版本处理。"""
+    if not book:
+        return True
+    return bool(edition) and book.replace(" ", "") in edition.replace(" ", "")
+
+
+def cmd_flashcards(args):
+    data = load_archive(args.archive)
+    profile = data.setdefault("profile", {})
+    if not profile.get("id"):
+        profile["id"] = uuid.uuid4().hex[:12]  # 闪卡进度在浏览器里按这个 ID 保存
+        save_archive(args.archive, data)
+    books = profile.get("textbooks") or {}
+    mistakes = data["mistakes"]
+    if args.subject:
+        mistakes = [m for m in mistakes if m["subject"] == norm_subject(args.subject)]
+    if not mistakes:
+        raise SystemExit("档案里还没有错题（或没有该科目的记录），没法生成闪卡。")
+
+    cards = []
+    for m in sorted(mistakes, key=lambda m: (m["exam_date"], m["subject"], _question_key(m["question"]))):
+        subj = m["subject"]
+        load_map(subj)
+        info = lookup_kp(m.get("kp_id")) or {}
+        loc = info.get("location", "")
+        if info and _map_status.get(subj) == "已核对" and loc and "待核对" not in loc \
+                and _textbook_matches(books.get(subj), info.get("edition", "")):
+            book = books.get(subj) or info.get("edition", "").split("（")[0].split("(")[0].strip()
+            where = f"{book} {loc}".strip()
+        elif info:
+            where = f"在课本目录里找「{info.get('unit', '')}」"
+        else:
+            where = ""
+        cards.append({
+            "id": m["id"], "subject": subj, "exam": m.get("exam_name", ""), "date": m["exam_date"],
+            "q": m["question"], "lost": m.get("points_lost", ""), "status": m.get("status", ""),
+            "stem": m.get("stem", ""), "cat": m.get("category", ""), "detail": m.get("detail", ""),
+            "stuck": m.get("stuck_point", ""), "idea": m.get("key_idea", ""), "answer": m.get("answer", ""),
+            "kp": m.get("kp_name") or info.get("name", ""), "where": where,
+        })
+
+    who = f"{profile.get('stage', '')}{profile.get('grade', '')}".strip()
+    subjects = sorted({c["subject"] for c in cards})
+    deck = {
+        "deck_id": profile["id"],
+        "title": " · ".join(x for x in [who, "、".join(subjects)] if x),
+        "generated": args.today,
+        "cards": cards,
+    }
+    with open(FLASHCARD_TEMPLATE, encoding="utf-8") as f:
+        html = f.read()
+    payload = json.dumps(deck, ensure_ascii=False).replace("</", "<\\/")
+    if "__DECK_JSON__" not in html:
+        raise SystemExit(f"闪卡模板缺少 __DECK_JSON__ 占位：{FLASHCARD_TEMPLATE}")
+    html = html.replace("__DECK_JSON__", payload, 1)
+    out = args.out or os.path.join(os.path.dirname(os.path.abspath(args.archive)), "错题闪卡.html")
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(html)
+    thin = sum(1 for c in cards if not c["stem"] or not c["idea"])
+    print(f"已生成错题闪卡：{out}（{len(cards)} 张）")
+    if thin:
+        print(f"提示：其中 {thin} 张缺少题干或核心思路，翻面后内容会比较少。可以把这些字段写进 JSON 再 merge 一次补上。")
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -510,6 +600,13 @@ def main():
     p.add_argument("--subject")
     p.add_argument("--today", default=today)
     p.set_defaults(func=cmd_due)
+
+    p = sub.add_parser("flashcards", help="从错题档案生成错题闪卡网页")
+    p.add_argument("--archive", required=True)
+    p.add_argument("--out", help="输出的 HTML 路径，默认和档案放在同一个文件夹，名为 错题闪卡.html")
+    p.add_argument("--subject")
+    p.add_argument("--today", default=today)
+    p.set_defaults(func=cmd_flashcards)
 
     p = sub.add_parser("report", help="跨考试报告")
     p.add_argument("--archive", required=True)

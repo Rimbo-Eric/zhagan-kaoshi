@@ -45,6 +45,9 @@ UTF-8 编码的 JSON：
    "kp_id": "GZ-SX-15-03", "kp_name": "导数在研究函数中的应用", "related_kp_ids": ["GZ-SX-04-03"],
    "category": "思路盲区", "detail": "单调性和图象已得出，没想到用特殊点 −π 卡住中间的零点",
    "stuck_point": "比较 xq 与 (xp+xr)/2", "points_lost": "3", "source": "学生",
+   "stem": "已知 f(x)=eˣ+sin x−x，x∈[−2π,+∞)，y=m 与 y=f(x) 有三个交点 xp<xq<xr，求证 2xq<xp+xr",
+   "key_idea": "不必精确比较三个根，找一个特殊点（−π）把中间的根和两边隔开",
+   "answer": "证 xq<−π 且 xr>0，于是 2xq<−2π≤xp<xp+xr",
    "status": "待重做", "correct_count": 0, "last_review": "", "next_review": "2026-11-18"}
  ]
 }
@@ -54,6 +57,7 @@ UTF-8 编码的 JSON：
 - `category` 只能是：基础漏洞、思路盲区、习惯失误、时间与策略。
 - `source`：学生说的填"学生"，你推测的填"推测"。
 - 科目写"数学、物理、化学、生物、语文、英语、政治、历史、地理"之一；"道德与法治""思想政治"统一记为"政治"。
+- `stem`、`key_idea`、`answer` 是闪卡用的字段，写法见 `outputs.md` 第 12 节。老档案里没有这三个字段的错题，可以写好后重新 `merge`：已有的记录不会重复写入，只会补上缺的这三个字段。
 - 不写学生姓名、学校等身份信息。
 
 ## 4. 给错题挂知识点
@@ -98,6 +102,9 @@ python3 scripts/archive.py due --archive 错题档案.json
 
 # 跨考试报告（Markdown）
 python3 scripts/archive.py report --archive 错题档案.json --subject 数学
+
+# 生成错题闪卡（默认输出到档案旁边的 错题闪卡.html）
+python3 scripts/archive.py flashcards --archive 错题档案.json
 ```
 
 `kp-search` 是按字面匹配的。知识点名称沿用教材的课题或节名，按概念搜不到时（例如高中历史搜"洋务"），换成课题名、单元名再搜，或者用下面的命令列出整张地图，按单元去找：
